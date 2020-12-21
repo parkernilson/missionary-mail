@@ -1,0 +1,25 @@
+doctype html
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        //- link to fonts
+        link(rel="preconnect", href="https://fonts.gstatic.com")
+        link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap")
+        block title
+        block styles
+            link(rel="stylesheet", href="/layout-styles.css")
+            link(rel="stylesheet", href="/main-styles.css")
+    body
+        div.background
+            div.center-column
+                h1.title-header 
+                    block title-header
+                        span Welcome to Parker's Mailing Server
+                if messages && messages.length > 0
+                    div.messages
+                        h4.messages-header
+                            strong Error
+                        each message in messages
+                            p.message= message
+                block content

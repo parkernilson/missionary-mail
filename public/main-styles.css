@@ -1,0 +1,86 @@
+body {
+    font-family: Montserrat, sans-serif;
+}
+
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: normal;
+}
+
+input[type="text"] {
+    border: 0;
+    outline: 0;
+    background: transparent;
+    border-bottom: 1px solid black;
+}
+
+::placeholder {
+}
+
+.background {
+}
+
+.email-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    max-width: 450px;
+    margin: auto;
+}
+
+p {
+    line-height: 1.5em;
+}
+
+a {
+    color: cornflowerblue;
+    text-decoration: none;
+}
+
+a:visited {
+    color: cornflowerblue;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.intro {
+    margin-bottom: 64px;
+}
+
+.title-header {
+    margin-bottom: 72px;
+    text-align: center;
+}
+
+.email-form-submit {
+    padding-left: 16px;
+    padding-right: 16px;
+    width: min-content;
+    align-self: center;
+    height: 32px;
+    border-radius: 16px;
+    background-color: #0585f5;
+    color: white;
+    border: none;
+    margin: 20px 0px;
+    transition: box-shadow .5s ease-out;
+}
+
+.email-form-submit:hover {
+    box-shadow: 1px 3px 8px gray;
+}
+
+.email-form-submit:active {
+    box-shadow: none;
+}
+
+button:active, button:focus {
+    outline: 0;
+    border: none;
+}
+
+.unsubscribe-link {
+    float: right;
+}

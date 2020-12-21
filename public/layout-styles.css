@@ -1,0 +1,32 @@
+body {
+    padding: 0;
+    margin: 0;
+}
+
+.background {
+    min-height: 100vh;
+}
+
+.center-column {
+    max-width: 600px;
+    flex: 1;
+    margin: auto;
+    padding-left: 32px;
+    padding-right: 32px;
+    padding-top: 100px;
+}
+
+.messages {
+    padding: 16px;
+    border-radius: 8px;
+    background-color: #ebebeb;
+}
+
+.messages-header {
+    margin: 0;
+}
+
+.message {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}

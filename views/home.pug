@@ -1,0 +1,29 @@
+extends layout.pug
+block title
+    title Welcome to Parker's Mailing Server
+
+block append styles
+    link(rel="stylesheet", href="/home.css")
+
+block title-header
+    span Missionary Mailing List
+
+block content
+    p.intro My name is Parker Nilson, and I am serving a mission for the 
+        a(href="https://churchofjesuschrist.org") Church of Jesus Christ of Latter-Day saints.
+        span  Enter your email below if you would like to receive email updates from me every couple weeks!
+    form.email-form(
+        method='POST',
+        action='/sign-up',
+        enctype='application/x-www-form-urlencoded'
+    )
+        input.email-input(
+            type='text',
+            name='email',
+            autocomplete='off',
+            placeholder="Your email",
+            onfocus='this.placeholder=""',
+            onblur='this.placeholder="Your email"'
+        )
+        input.email-form-submit(type='submit', value='Click to receive emails from Elder Nilson')
+    a.unsubscribe-link(href='/unsubscribe') Or, click here to unsubscribe.

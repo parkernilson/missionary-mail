@@ -1,0 +1,26 @@
+extends layout.pug
+block title
+    title Unsubscribe
+
+block append styles
+    link(rel="stylesheet", href="/home.css")
+
+block title-header
+    span Unsubscribe
+
+block content
+    p.intro If you would like to unsubscribe from Elder Nilson's mailing list, enter your email below.
+    form.email-form(
+        method='POST',
+        action='/remove-email',
+        enctype='application/x-www-form-urlencoded'
+    )
+        input.email-input(
+            type='text',
+            name='email',
+            autocomplete='off',
+            placeholder="Your email",
+            onfocus='this.placeholder=""',
+            onblur='this.placeholder="Your email"'
+        )
+        input.email-form-submit(type='submit', value='Click to unsubscribe from Elder Nilson\'s emails')
