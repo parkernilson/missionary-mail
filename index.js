@@ -9,7 +9,7 @@ const nodemailer = require('nodemailer')
 const path = require('path')
 const app = express()
 
-const { addEmailToList, removeEmailFromList, getEmailList } = require('./src/email-list')
+const { addEmailToList, removeEmailFromList, getEmailList, getSendingListFromEmailArray } = require('./src/email-list')
 
 app.use(cookieParser('fab29sjkdafb2%%'));
 app.use(session({cookie: { maxAge: 60000 }}));
@@ -71,14 +71,16 @@ app.post('/sign-up', (req, res) => {
         getEmailList()
             .then(emails => {
                 if (!emails.includes(email)) {
-                    addEmailToList(email).then(() => {
+                    addEmailToList(email).then((newEmails) => {
                         // Successfully added the email to the list
-                        transport.sendMail({
-                            from: "Missionary Mail Bot <mailbot@parkernilson.com>",
-                            to: "parker.todd.nilson@gmail.com",
-                            subject: "Somebody Signed Up For Mailing List!",
-                            text: 
-                        })
+                        if (process.env.ENV === "production") {
+                            transport.sendMail({
+                                from: "Missionary Mail Bot <mailbot@parkernilson.com>",
+                                to: "parker.todd.nilson@gmail.com",
+                                subject: "Somebody Signed Up For Mailing List!",
+                                text: getSendingListFromEmailArray(newEmails)
+                            })
+                        }
 
                         res.render('successfully-added')
                     }).catch(error => {

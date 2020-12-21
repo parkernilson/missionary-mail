@@ -3,7 +3,7 @@ services:
   server:
     build: .
     environment:
-      ENV: production
+      ENV: development 
     volumes:
       - ./data:/code/data
     restart: unless-stopped

@@ -4,8 +4,8 @@ const path = require('path')
 const emailListPath = path.join(process.env.PWD, 'data/email-list.txt')
 
 function getSendingListFromEmailArray(emailArray) {
-    return emailArray.reduce((acc, currentValue, i, arr) => {
-        acc + (i > 0 ? `, ${currentValue}` : `${currentValue}`)
+    return emailArray.reduce((acc, currentValue, i) => {
+        return acc + (i > 0 ? `, ${currentValue}` : `${currentValue}`)
     }, "")
 }
 
@@ -18,7 +18,7 @@ function getEmailList() {
             if (err) {
                 reject(err)
             } else {
-                const emails = data.split('\n')
+                const emails = data === "" ? [] : data.split('\n')
                 resolve(emails)
             }
         })
@@ -34,7 +34,7 @@ function addEmailToList(email, req, res) {
                     if (err) {
                         reject(err)
                     } else {
-                        resolve()
+                        resolve([...emails, email])
                     }
                 })
             }
@@ -65,5 +65,5 @@ module.exports = {
     addEmailToList,
     removeEmailFromList,
     getEmailList,
-
+    getSendingListFromEmailArray
 }
