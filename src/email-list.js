@@ -3,12 +3,19 @@ const path = require('path')
 
 const emailListPath = path.join(process.env.PWD, 'data/email-list.txt')
 
+/**
+ * Get a list of emails separated by commas from an email array
+ * e.g. 'parker@gmail.com, dan@gmail.com, ethan@mail.net'
+ */
 function getSendingListFromEmailArray(emailArray) {
     return emailArray.reduce((acc, currentValue, i) => {
         return acc + (i > 0 ? `, ${currentValue}` : `${currentValue}`)
     }, "")
 }
 
+/**
+ * Get an array of emails from the text data from the email list
+ */
 function getEmailArrayFromEmailListData(emailListData) {
     return emailListData === "" ? [] : emailListData.split('\n')
 }
