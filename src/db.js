@@ -4,8 +4,10 @@ const dbname = 'missionary-mail'
 
 let db;
 
-const loadDB = new Promise((resolve, reject) => {
-    MongoClient.connect(url, (err, client) => {
+const loadDB = () => new Promise((resolve, reject) => {
+    MongoClient.connect(url, {
+        useUnifiedTopology: true
+    }, (err, client) => {
         if (err) return reject(err)
 
         const db = client.db(dbname)
