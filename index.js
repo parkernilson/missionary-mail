@@ -83,6 +83,8 @@ app.post('/incoming-mail', basicAuth({
 
 })
 
+// BUG the new file list functions are not working (specifically getEmailList). Fix these
+
 app.post('/mailing-list/sign-up', (req, res) => {
     const email = req.body.email
     if (email && validateEmail(email)) {
