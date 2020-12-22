@@ -19,6 +19,7 @@
     "express-rate-limit": "^5.2.3",
     "express-session": "^1.17.1",
     "fs": "0.0.1-security",
+    "mongodb": "^3.6.3",
     "nodemailer": "^6.4.17",
     "path": "^0.12.7",
     "pug": "^3.0.0"
