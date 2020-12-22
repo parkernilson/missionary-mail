@@ -11,6 +11,8 @@ const nodemailer = require('nodemailer')
 const path = require('path')
 const app = express()
 
+// load the db
+require('./src/db')
 const { addEmailToList, removeEmailFromList, getEmailList, getSendingListFromEmailArray } = require('./src/email-list')
 const { CONFIRMATION_ENCRYPTION_KEY, getJoinRequests, removeJoinRequest, addJoinRequest } = require('./src/email-confirmation')
 const { getItemArrayFromListFile } = require('./src/list-file')
