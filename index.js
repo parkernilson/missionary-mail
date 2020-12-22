@@ -16,7 +16,12 @@ const { CONFIRMATION_ENCRYPTION_KEY, getJoinRequests, removeJoinRequest, addJoin
 const { getItemArrayFromListFile } = require('./src/list-file')
 
 app.use(cookieParser('fab29sjkdafb2%%'));
-app.use(session({cookie: { maxAge: 60000 }}));
+app.use(session({
+    cookie: { maxAge: 60000 },
+    resave: false,
+    saveUninitialized: false,
+    secret: "20dans23lkdmabsk"
+}));
 app.use(flash());
 
 app.set('view engine', 'pug')
