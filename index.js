@@ -2,6 +2,7 @@ const fs = require('fs')
 
 const express = require('express')
 const AES = require('crypto-js/aes')
+const rateLimit = require('express-rate-limit')
 const basicAuth = require('express-basic-auth')
 const session = require('express-session')
 const flash = require('connect-flash')
@@ -52,10 +53,15 @@ app.use(express.static('public', staticOptions))
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 
+// API Rate limiter
+const mailingListLimiter = rateLimit({
+  windowMs: 30 * 60 * 1000, // 30 minutes
+  max: 20
+});
+app.use('/mailing-list/', mailingListLimiter)
+
 // TODO: validate email address before adding to the txt or before removing
 // TODO: send a confirmation email with email confirmation link
-
-// TODO: add a rate limiter
 
 // TODO: add a header (with navigation or some way to get to home)
 
@@ -72,7 +78,7 @@ app.post('/incoming-mail', basicAuth({
 
 })
 
-app.post('/sign-up', (req, res) => {
+app.post('/mailing-list/sign-up', (req, res) => {
     const email = req.body.email
     if (email && validateEmail(email)) {
         getEmailList()
@@ -119,7 +125,7 @@ app.post('/sign-up', (req, res) => {
     }
 })
 
-app.post('/remove-email', (req, res) => {
+app.post('/mailing-list/remove-email', (req, res) => {
     const email = req.body.email
 
     getEmailList()
@@ -162,7 +168,7 @@ app.post('/remove-email', (req, res) => {
 })
 
 // TODO: implement email verification for join and remove
-app.get('/verify-email/:confirmationCode', (req, res) => {
+app.get('/mailing-list/verify-email/:confirmationCode', (req, res) => {
     const emailToVerify = AES.decrypt(req.params.confirmationCode, CONFIRMATION_ENCRYPTION_KEY)
 
     getJoinRequests().then(emails => {
