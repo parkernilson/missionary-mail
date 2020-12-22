@@ -56,7 +56,7 @@ app.use(express.urlencoded({extended: true}))
 // API Rate limiter
 const mailingListLimiter = rateLimit({
   windowMs: 30 * 60 * 1000, // 30 minutes
-  max: 20
+  max: 30
 });
 app.use('/mailing-list/', mailingListLimiter)
 
