@@ -52,14 +52,11 @@ app.use(express.static('public', staticOptions))
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 
-// TODO: add a rate limiter
 // TODO: validate email address before adding to the txt or before removing
-    /* 
-        NOTE: I believe an easy way to do this in a reasonably effective way
-        would be to send an email with a link that has a hashed version of the
-        email to add, then when the user goes to the link, the email gets added to the list.
-    */
-// TODO: send a confirmation email
+// TODO: send a confirmation email with email confirmation link
+
+// TODO: add a rate limiter
+
 // TODO: add a header (with navigation or some way to get to home)
 
 function validateEmail(email) {
