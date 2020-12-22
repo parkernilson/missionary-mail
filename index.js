@@ -73,6 +73,7 @@ app.post('/sign-up', (req, res) => {
                 if (!emails.includes(email)) {
                     addEmailToList(email).then((newEmails) => {
                         // Successfully added the email to the list
+                        // send an email to notify me that my mailing list has changed
                         if (process.env.ENV === "production") {
                             transport.sendMail({
                                 from: "Missionary Mail Bot <mailbot@parkernilson.com>",
@@ -82,6 +83,7 @@ app.post('/sign-up', (req, res) => {
                             })
                         }
 
+                        // tell the user that they have been added to the list
                         res.render('successfully-added')
                     }).catch(error => {
                         // a 5xx error occurred while writing the email to the list
@@ -115,8 +117,19 @@ app.post('/remove-email', (req, res) => {
                 res.redirect('/unsubscribe')
             } else {
                 removeEmailFromList(email)
-                    .then(() => {
+                    .then((newEmails) => {
                         // successfully removed the email
+                        // send an email to notify me that my mailing list has changed
+                        if (process.env.ENV === "production") {
+                            transport.sendMail({
+                                from: "Missionary Mail Bot <mailbot@parkernilson.com>",
+                                to: "parker.todd.nilson@gmail.com",
+                                subject: "Somebody Unsubscribed From Mailing List!",
+                                text: getSendingListFromEmailArray(newEmails)
+                            })
+                        }
+
+                        // inform the user that they have been removed from the list
                         res.render('goodbye')
                     })
                     .catch(error => {

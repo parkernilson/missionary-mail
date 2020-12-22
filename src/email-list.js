@@ -9,6 +9,10 @@ function getSendingListFromEmailArray(emailArray) {
     }, "")
 }
 
+function getEmailArrayFromEmailListData(emailListData) {
+    return emailListData === "" ? [] : emailListData.split('\n')
+}
+
 /**
  * Get an array of emails from the mailing list
  */
@@ -18,7 +22,7 @@ function getEmailList() {
             if (err) {
                 reject(err)
             } else {
-                const emails = data === "" ? [] : data.split('\n')
+                const emails = getEmailArrayFromEmailListData(data)
                 resolve(emails)
             }
         })
@@ -54,7 +58,8 @@ function removeEmailFromList(email, req, res) {
                 if (err) {
                     reject(err)
                 } else {
-                    resolve()
+                    // resolve with an array of the updated list of emails
+                    resolve(getEmailArrayFromEmailListData(data))
                 }
             })
         })

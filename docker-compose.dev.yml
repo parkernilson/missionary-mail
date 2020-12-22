@@ -5,7 +5,9 @@ services:
     environment:
       ENV: development 
     volumes:
-      - ./data:/code/data
+      # - ./data:/code/data
+      - ./:/code
     restart: unless-stopped
+    entrypoint: ["npm", "run", "dev"]
     ports: 
       - 5000:8080
