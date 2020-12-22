@@ -1,6 +1,7 @@
 const fs = require('fs')
 
 const express = require('express')
+const AES = require('crypto-js/aes')
 const basicAuth = require('express-basic-auth')
 const session = require('express-session')
 const flash = require('connect-flash')
@@ -10,6 +11,8 @@ const path = require('path')
 const app = express()
 
 const { addEmailToList, removeEmailFromList, getEmailList, getSendingListFromEmailArray } = require('./src/email-list')
+const { CONFIRMATION_ENCRYPTION_KEY, getJoinRequests, removeJoinRequest, addJoinRequest } = require('./src/email-confirmation')
+const { getItemArrayFromListFile } = require('./src/list-file')
 
 app.use(cookieParser('fab29sjkdafb2%%'));
 app.use(session({cookie: { maxAge: 60000 }}));
@@ -159,6 +162,19 @@ app.post('/remove-email', (req, res) => {
             req.flash('error', 'An unexpected error occurred while retrieving the mailing list. Please try again later.')
             return res.redirect('/')
         })
+})
+
+// TODO: implement email verification for join and remove
+app.get('/verify-email/:confirmationCode', (req, res) => {
+    const emailToVerify = AES.decrypt(req.params.confirmationCode, CONFIRMATION_ENCRYPTION_KEY)
+
+    getJoinRequests().then(emails => {
+        if (emails.includes(emailToVerify)) {
+            // TODO: add the email to the mailing list
+        } else {
+            // TODO: 401 invalid confirmation code
+        }
+    }).catch(error => console.error)
 })
 
 app.get('/unsubscribe', (req, res) => {

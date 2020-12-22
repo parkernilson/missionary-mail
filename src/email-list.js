@@ -3,79 +3,42 @@ const path = require('path')
 
 const emailListPath = path.join(process.env.PWD, 'data/email-list.txt')
 
+const {
+    addItemToListFile,
+    removeItemFromListFile,
+    getItemArrayFromListFile,
+    getCommaListFromArray
+} = require('./list-file')
+
 /**
- * Get a list of emails separated by commas from an email array
- * e.g. 'parker@gmail.com, dan@gmail.com, ethan@mail.net'
+ * Get a list of emails that can be copied into the sending
+ * line of an email from an array of emails
  */
 function getSendingListFromEmailArray(emailArray) {
-    return emailArray.reduce((acc, currentValue, i) => {
-        return acc + (i > 0 ? `, ${currentValue}` : `${currentValue}`)
-    }, "")
+    return getCommaListFromArray(emailArray)
 }
 
 /**
- * Get an array of emails from the text data from the email list
+ * Add an email to the mailing list
  */
-function getEmailArrayFromEmailListData(emailListData) {
-    return emailListData === "" ? [] : emailListData.split('\n')
+function addEmailToList(email) {
+    return addItemToListFile(email, emailListPath)
 }
 
 /**
- * Get an array of emails from the mailing list
+ * Remove an email from the mailing list
  */
+function removeEmailFromList(email) {
+    return removeItemFromListFile(email, emailListPath)
+}
+
 function getEmailList() {
-    return new Promise((resolve, reject) => {
-        fs.readFile(emailListPath, 'utf8', (err, data) => {
-            if (err) {
-                reject(err)
-            } else {
-                const emails = getEmailArrayFromEmailListData(data)
-                resolve(emails)
-            }
-        })
-    })
-}
-
-function addEmailToList(email, req, res) {
-    return new Promise((resolve, reject) => {
-        getEmailList().then(emails => {
-            if (!emails.includes(email)) {
-                const append = emails.length > 0 ? `\n${email}` : `${email}`
-                fs.appendFile(emailListPath, append, (err) => {
-                    if (err) {
-                        reject(err)
-                    } else {
-                        resolve([...emails, email])
-                    }
-                })
-            }
-        }).catch(error => {
-            reject(error)
-        })
-    })
-}
-
-function removeEmailFromList(email, req, res) {
-    return new Promise((resolve, reject) => {
-        fs.readFile(emailListPath, 'utf8', (err, data) => {
-            data = data.replace(`\n${email}`, '')
-            data = data.replace(`${email}`, '')
-
-            fs.writeFile(emailListPath, data, (err) => {
-                if (err) {
-                    reject(err)
-                } else {
-                    // resolve with an array of the updated list of emails
-                    resolve(getEmailArrayFromEmailListData(data))
-                }
-            })
-        })
-    })
+    return getItemArrayFromListFile(emailListPath)
 }
 
 module.exports = {
+    getEmailList,
     addEmailToList,
     removeEmailFromList,
-    getEmailList,
     getSendingListFromEmailArray
 }
