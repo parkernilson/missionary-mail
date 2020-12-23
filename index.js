@@ -73,15 +73,20 @@ app.post('/sign-up', (req, res) => {
                 if (!emails.includes(email)) {
                     addEmailToList(email).then((newEmails) => {
                         // Successfully added the email to the list
+                        const newSendingList = getSendingListFromEmailArray(newEmails)
+
                         // send an email to notify me that my mailing list has changed
                         if (process.env.ENV === "production") {
                             transport.sendMail({
                                 from: "Missionary Mail Bot <mailbot@parkernilson.com>",
                                 to: "parker.todd.nilson@gmail.com",
-                                subject: "Somebody Signed Up For Mailing List!",
-                                text: getSendingListFromEmailArray(newEmails)
-                            })
+                                subject: "Somebody Joined The Mailing List!",
+                                text: newSendingList !== "" ? 
+                                    `The new mailing list: ${newSendingList}`
+                                    : 'The mailing list is now empty.'
+                            }).catch(error => console.error)
                         }
+
 
                         // tell the user that they have been added to the list
                         res.render('successfully-added')
@@ -119,14 +124,19 @@ app.post('/remove-email', (req, res) => {
                 removeEmailFromList(email)
                     .then((newEmails) => {
                         // successfully removed the email
+                        
+                        const newSendingList = getSendingListFromEmailArray(newEmails)
+
                         // send an email to notify me that my mailing list has changed
                         if (process.env.ENV === "production") {
                             transport.sendMail({
                                 from: "Missionary Mail Bot <mailbot@parkernilson.com>",
                                 to: "parker.todd.nilson@gmail.com",
-                                subject: "Somebody Unsubscribed From Mailing List!",
-                                text: getSendingListFromEmailArray(newEmails)
-                            })
+                                subject: "Somebody Was Removed From Mailing List!",
+                                text: newSendingList !== "" ? 
+                                    `The new mailing list: ${newSendingList}`
+                                    : 'The mailing list is now empty.'
+                            }).catch(error => console.error)
                         }
 
                         // inform the user that they have been removed from the list
