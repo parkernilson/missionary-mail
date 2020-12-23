@@ -10,8 +10,6 @@ function loadDB() {
     }).then(client => {
         db = client.db(dbname)
         return db
-    }).catch(error => {
-        console.error(error)
     })
 }
 
