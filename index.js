@@ -51,6 +51,13 @@ app.use(express.urlencoded({extended: true}))
 
 // TODO: add a rate limiter
 // TODO: validate email address before adding to the txt or before removing
+    /* 
+        NOTE: I believe an easy way to do this in a reasonably effective way
+        would be to send an email with a link that has a hashed version of the
+        email to add, then when the user goes to the link, the email gets added to the list.
+    */
+// TODO: send a confirmation email
+// TODO: add a header (with navigation or some way to get to home)
 
 function validateEmail(email) {
     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
