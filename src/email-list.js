@@ -80,9 +80,9 @@ function sendConfirmationEmail(email) {
         to: email,
         subject: "Please Confirm Email for Elder Nilson's Mailing List.",
         text: `You have requested to be added to Elder Nilson's Mailing List!
-        Before I can send you any emails, you will need to click the following link to confirm your email:
-        
-        https://mail.parkernilson.com/verify-email/${encodeURIComponent(generateConfirmationCode(email))}`
+Before I can send you any emails, you will need to click the following link to confirm your email:
+
+https://mail.parkernilson.com/mailing-list/verify-email/${encodeURIComponent(generateConfirmationCode(email))}`
     })
 }
 
