@@ -7,15 +7,21 @@ const basicAuth = require('express-basic-auth')
 const session = require('express-session')
 const flash = require('connect-flash')
 const cookieParser = require('cookie-parser')
-const nodemailer = require('nodemailer')
 const path = require('path')
 const app = express()
 
 // load the db
 require('./src/db')
-const { addEmailToList, removeEmailFromList, getEmailList, getSendingListFromEmailArray } = require('./src/email-list')
-const { CONFIRMATION_ENCRYPTION_KEY, getJoinRequests, removeJoinRequest, addJoinRequest } = require('./src/email-confirmation')
-const { getItemArrayFromListFile } = require('./src/list-file')
+const { 
+    addEmailToList, 
+    removeEmailFromList, 
+    getEmailList, 
+    getSendingListFromEmailArray, 
+    sendConfirmationEmail,
+    attemptVerifyEmail
+} = require('./src/email-list')
+const { getEmailFromConfirmationCode, generateConfirmationCode } = require('./src/confirmation-code')
+const { sendEmail } = require('./src/send-email')
 
 app.use(cookieParser('fab29sjkdafb2%%'));
 app.use(session({
@@ -29,20 +35,6 @@ app.use(flash());
 app.set('view engine', 'pug')
 app.set('views')
 
-require('./src/setup-data')
-
-// set up mail transport
-const transport = nodemailer.createTransport({
-    host: 'smtp.cloudmta.net',
-    port: 587,
-    secure: false,
-    requireTLS: true,
-    auth: {
-        user: "7ca731b2f948c506",
-        pass: "KrymdLx4Vpr1A77iC3tQVgLa"
-    },
-    logger: true
-});
 
 // Set up middleware
 const staticOptions = {
@@ -67,10 +59,11 @@ const mailingListLimiter = rateLimit({
 });
 app.use('/mailing-list/', mailingListLimiter)
 
-// TODO: validate email address before adding to the txt or before removing
-// TODO: send a confirmation email with email confirmation link
 
 // TODO: add a header (with navigation or some way to get to home)
+// TODO: switch to async functions
+// TODO: send emails to the correct emails
+// TODO: check result.ok after each database operation before accepting new state
 
 function validateEmail(email) {
     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -93,27 +86,22 @@ app.post('/mailing-list/sign-up', (req, res) => {
         getEmailList()
             .then(emails => {
                 if (!emails.includes(email)) {
-                    addEmailToList(email).then((newEmails) => {
-                        // Successfully added the email to the list
-                        const newSendingList = getSendingListFromEmailArray(newEmails)
+                    addEmailToList(email).then(async result => {
 
-                        // send an email to notify me that my mailing list has changed
+                        // send confirmation email to new email
                         if (process.env.ENV === "production") {
-                            transport.sendMail({
-                                from: "Missionary Mail Bot <mailbot@parkernilson.com>",
-                                to: "parker.todd.nilson@gmail.com",
-                                subject: "Somebody Joined The Mailing List!",
-                                text: newSendingList !== "" ? 
-                                    `The new mailing list: ${newSendingList}`
-                                    : 'The mailing list is now empty.'
-                            }).catch(error => console.error)
+                            sendConfirmationEmail(email)
+                                .catch(error => console.error(error))
+                        } else {
+                            const confirmationCode = encodeURIComponent(generateConfirmationCode(email))
+                            console.log(`added email ${email} to list with verification code: ${confirmationCode}`)
                         }
 
-
                         // tell the user that they have been added to the list
-                        res.render('successfully-added')
+                        res.render('confirmation-sent')
                     }).catch(error => {
                         // a 5xx error occurred while writing the email to the list
+                        console.error(error)
                         req.flash('error', 'An unexpected error occurred while trying to write that email to the list. Please try again later.')
                         res.redirect('/')
                     })
@@ -124,6 +112,7 @@ app.post('/mailing-list/sign-up', (req, res) => {
                 }
             }).catch(error => {
                 // a 5xx error, because the email list could not be retrieved
+                console.error(error)
                 req.flash('error', 'An unexpected error occurred while retrieving the mailing list. Please try again later.')
                 return res.redirect('/')
             })
@@ -144,49 +133,81 @@ app.post('/mailing-list/remove-email', (req, res) => {
                 res.redirect('/unsubscribe')
             } else {
                 removeEmailFromList(email)
-                    .then((newEmails) => {
+                    .then(result => {
                         // successfully removed the email
+                        const newEmailList = emails.filter(e => e !== email)
                         
-                        const newSendingList = getSendingListFromEmailArray(newEmails)
+                        const newSendingList = getSendingListFromEmailArray(newEmailList)
+                        console.log(newSendingList)
 
                         // send an email to notify me that my mailing list has changed
                         if (process.env.ENV === "production") {
-                            transport.sendMail({
-                                from: "Missionary Mail Bot <mailbot@parkernilson.com>",
+                            // notify me that the mailing list has changed
+                            sendEmail({
                                 to: "parker.todd.nilson@gmail.com",
                                 subject: "Somebody Was Removed From Mailing List!",
                                 text: newSendingList !== "" ? 
                                     `The new mailing list: ${newSendingList}`
                                     : 'The mailing list is now empty.'
-                            }).catch(error => console.error)
+                            }).catch(error => console.error(error))
                         }
 
                         // inform the user that they have been removed from the list
                         res.render('goodbye')
                     })
                     .catch(error => {
+                        console.error(error)
                         req.flash('error', 'An unexpected error occurred while trying to remove that email from the mailing list. Please try again later.')
                         res.redirect('/unsubscribe')
                     })
             }
         })
         .catch(error => {
+            console.error(error)
             req.flash('error', 'An unexpected error occurred while retrieving the mailing list. Please try again later.')
             return res.redirect('/')
         })
 })
 
 // TODO: implement email verification for join and remove
-app.get('/mailing-list/verify-email/:confirmationCode', (req, res) => {
-    const emailToVerify = AES.decrypt(req.params.confirmationCode, CONFIRMATION_ENCRYPTION_KEY)
+app.get('/mailing-list/verify-email/:confirmationCode', async (req, res) => {
+    const confirmationCode = decodeURIComponent(req.params.confirmationCode)
+    const emailToVerify = getEmailFromConfirmationCode(confirmationCode)
 
-    getJoinRequests().then(emails => {
-        if (emails.includes(emailToVerify)) {
-            // TODO: add the email to the mailing list
-        } else {
-            // TODO: 401 invalid confirmation code
-        }
-    }).catch(error => console.error)
+    attemptVerifyEmail(emailToVerify)
+        .then(async commandResult => {
+            const { result } = commandResult
+            if (result.ok && result.nModified < 1) {
+                req.flash('error', 'That verification code is invalid.')
+                res.redirect('/')
+            } else {
+                // notify me that the mailing list has changed
+
+                // retrieve all verified emails from the database
+                const newEmailList = await getEmailList()
+                const newSendingList = getSendingListFromEmailArray(newEmailList)
+
+                if (process.env.ENV === "production") {
+                    sendEmail({
+                        to: "parker.todd.nilson@gmail.com",
+                        subject: "Somebody Joined The Mailing List!",
+                        text: newSendingList !== "" ? 
+                            `The new mailing list: ${newSendingList}`
+                            : 'The mailing list is now empty.'
+                    }).catch(error => console.error(error))
+                } else {
+                    console.log(`Successfully verified email ${emailToVerify}.`)
+                    console.log(`New sending list: ${newSendingList}`)
+                }
+
+                res.render('email-confirmed')
+            }
+        })
+        .catch(error => {
+            console.error(error)
+            req.flash('error', 'An unexpected error occurred while trying to verify your email. Please try again later.')
+            res.redirect('/')
+        })
 })
 
 app.get('/unsubscribe', (req, res) => {

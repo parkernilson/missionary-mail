@@ -1,20 +1,19 @@
 const MongoClient = require('mongodb').MongoClient
-const url = 'mongodb://db:27017'
+const url = 'mongodb://root:27hdKslik@db:27017'
 const dbname = 'missionary-mail'
 
 let db;
 
-const loadDB = () => new Promise((resolve, reject) => {
-    MongoClient.connect(url, {
+function loadDB() {
+    return MongoClient.connect(url, {
         useUnifiedTopology: true
-    }, (err, client) => {
-        if (err) return reject(err)
-
-        const db = client.db(dbname)
-
-        return resolve(db)
+    }).then(client => {
+        db = client.db(dbname)
+        return db
+    }).catch(error => {
+        console.error(error)
     })
-})
+}
 
 /**
  * Get the db instance, and if it isn't loaded load it.

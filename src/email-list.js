@@ -1,9 +1,21 @@
 const fs = require('fs')
 const path = require('path')
 
-const { getDB } = require('./db')
+const AES = require('crypto-js/aes')
 
-const emailListPath = path.join(process.env.PWD, 'data/email-list.txt')
+const { getDB } = require('./db')
+const { sendEmail } = require('./send-email')
+const { generateConfirmationCode } = require('./confirmation-code')
+
+/**
+ * Get a comma separated list of items from an array
+ * e.g. 'a, b, c'
+ */
+function getCommaListFromArray(arr) {
+    return arr.reduce((acc, cur, i) => {
+        return acc + (i > 0 ? `, ${cur}` : `${cur}`)
+    }, "")
+}
 
 /**
  * Get a list of emails that can be copied into the sending
@@ -21,7 +33,8 @@ function addEmailToList(email) {
         .then(db => {
             const recipients = db.collection('recipients')
             const newRecipient = {
-                email
+                email,
+                verified: false
             }
             return recipients.insertOne(newRecipient)
         })
@@ -34,7 +47,7 @@ function removeEmailFromList(email) {
     return getDB()
         .then(db => {
             const recipients = db.collection('recipients')
-            return recipients.deleteOne({
+            return recipients.deleteMany({
                 email: {
                     $eq: email
                 }
@@ -50,7 +63,10 @@ function getEmailList() {
         // get all of the recipient documents on the email list
         .then(db => {
             const recipientsCollection = db.collection('recipients')
-            return recipientsCollection.find()
+            return recipientsCollection.find({ verified: true })
+        })
+        .then(cursor => {
+            return cursor.toArray()
         })
         // map to the email field of each document
         .then(documents => {
@@ -58,9 +74,40 @@ function getEmailList() {
         })
 }
 
+
+function sendConfirmationEmail(email) {
+    return sendEmail({
+        to: email,
+        subject: "Please Confirm Email for Elder Nilson's Mailing List.",
+        text: `You have requested to be added to Elder Nilson's Mailing List!
+        Before I can send you any emails, you will need to click the following link to confirm your email:
+        
+        https://mail.parkernilson.com/verify-email/${encodeURIComponent(generateConfirmationCode(email))}`
+    })
+}
+
+function attemptVerifyEmail(email) {
+    return getDB()
+        .then(db => {
+            const recipients = db.collection('recipients')
+
+            return recipients.updateOne({
+                email: {
+                    $eq: email
+                }
+            }, {
+                $set: {
+                    "verified": true
+                }
+            })
+        })
+}
+
 module.exports = {
     getEmailList,
     addEmailToList,
     removeEmailFromList,
-    getSendingListFromEmailArray
+    getSendingListFromEmailArray,
+    sendConfirmationEmail,
+    attemptVerifyEmail
 }

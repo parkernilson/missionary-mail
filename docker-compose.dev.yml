@@ -5,17 +5,23 @@ services:
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: 27hd!@Kslik
+      MONGO_INITDB_ROOT_PASSWORD: 27hdKslik
     ports:
       - 27017:27017
+    command: mongod --logpath=/dev/null --quiet
   server:
     build: .
     environment:
       ENV: development 
     volumes:
-      # - ./data:/code/data
-      - ./:/code
+      - ./data/db:/data/db
+      - ./index.js:/code/index.js
+      - ./src:/code/src
     restart: unless-stopped
     entrypoint: ["npm", "run", "dev"]
     ports: 
       - 5000:8080
+    depends_on:
+      - db
+    links:
+      - db
