@@ -33,7 +33,7 @@ function addEmailToList(email) {
         .then(db => {
             const recipients = db.collection('recipients')
             const newRecipient = {
-                email,
+                email: email.toLowerCase(),
                 verified: false
             }
             return recipients.insertOne(newRecipient)
@@ -49,7 +49,7 @@ function removeEmailFromList(email) {
             const recipients = db.collection('recipients')
             return recipients.deleteMany({
                 email: {
-                    $eq: email
+                    $eq: email.toLowerCase()
                 }
             })
         })
@@ -58,12 +58,12 @@ function removeEmailFromList(email) {
 /**
  * Get an array of emails to send the missionary mail to
  */
-function getEmailList() {
+function getEmailList(filter) {
     return getDB()
         // get all of the recipient documents on the email list
         .then(db => {
             const recipientsCollection = db.collection('recipients')
-            return recipientsCollection.find({ verified: true })
+            return recipientsCollection.find(filter)
         })
         .then(cursor => {
             return cursor.toArray()
@@ -93,7 +93,7 @@ function attemptVerifyEmail(email) {
 
             return recipients.updateOne({
                 email: {
-                    $eq: email
+                    $eq: email.toLowerCase()
                 }
             }, {
                 $set: {

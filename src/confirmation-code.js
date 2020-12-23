@@ -4,7 +4,7 @@ const AES = CryptoJS.AES
 const CONFIRMATION_ENCRYPTION_KEY = "dfan20xkj2n"
 
 function generateConfirmationCode(email) {
-    return AES.encrypt(email, CONFIRMATION_ENCRYPTION_KEY)
+    return AES.encrypt(email.toLowerCase(), CONFIRMATION_ENCRYPTION_KEY)
 }
 
 function getEmailFromConfirmationCode(confirmationCode) {
