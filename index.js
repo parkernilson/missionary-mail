@@ -78,7 +78,7 @@ app.post('/incoming-mail', basicAuth({
 // BUG the new file list functions are not working (specifically getEmailList). Fix these
 
 app.post('/mailing-list/sign-up', async (req, res) => {
-    const email = req.body.email
+    const email = req.body.email.toLowerCase()
 
     if (!email || !validateEmail(email)) {
         req.flash('error', 'You did not enter a valid email address.')
@@ -132,7 +132,7 @@ app.post('/mailing-list/sign-up', async (req, res) => {
 })
 
 app.post('/mailing-list/remove-email', async (req, res) => {
-    const email = req.body.email
+    const email = req.body.email.toLowerCase()
 
     let emails
     try {
@@ -143,7 +143,7 @@ app.post('/mailing-list/remove-email', async (req, res) => {
         return res.redirect('/')
     }
 
-    if (!emails.includes(email.toLowerCase())) {
+    if (!emails.includes(email)) {
         req.flash('error', 'That email could not be found in the current mailing list.')
         return res.redirect('/unsubscribe')
     }
