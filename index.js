@@ -60,6 +60,10 @@ const mailingListLimiter = rateLimit({
 app.use('/mailing-list/', mailingListLimiter)
 
 
+// TODO: bug test case sensitivity
+// TODO: bug test data persistence between boots
+// TODO: bug test restarting droplet
+
 // TODO: add a header (with navigation or some way to get to home)
 
 function validateEmail(email) {
@@ -74,8 +78,6 @@ app.post('/incoming-mail', basicAuth({
     // TODO: handle email commands here
 
 })
-
-// BUG the new file list functions are not working (specifically getEmailList). Fix these
 
 app.post('/mailing-list/sign-up', async (req, res) => {
     const email = req.body.email.toLowerCase()
