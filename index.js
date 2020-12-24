@@ -67,13 +67,6 @@ const adminDashboardLimiter = rateLimit({
 })
 app.use('/admin/', adminDashboardLimiter)
 
-
-// TODO: bug test case sensitivity
-// TODO: bug test data persistence between boots
-// TODO: bug test restarting droplet
-
-// TODO: add a header (with navigation or some way to get to home)
-
 function validateEmail(email) {
     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     return re.test(String(email).toLowerCase())
