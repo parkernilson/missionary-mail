@@ -18,6 +18,8 @@ services:
     volumes:
       - ./index.js:/code/index.js
       - ./src:/code/src
+      - ./public:/code/public
+      - ./views:/code/views
     restart: unless-stopped
     entrypoint: ["npm", "run", "dev"]
     ports: 

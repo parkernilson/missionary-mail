@@ -40,13 +40,13 @@ function getSendingListFromEmailArray(emailArray) {
 /**
  * Add an email to the mailing list
  */
-function addEmailToList(email) {
+function addEmailToList(email, verified) {
     return getDB()
         .then(db => {
             const recipients = db.collection('recipients')
             const newRecipient = {
                 email: email.toLowerCase(),
-                verified: false
+                verified: verified ? true : false
             }
             return recipients.insertOne(newRecipient)
         })

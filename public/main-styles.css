@@ -61,7 +61,7 @@ a:hover {
 .email-form-submit {
     padding-left: 16px;
     padding-right: 16px;
-    width: min-content;
+    width: fit-content;
     align-self: center;
     height: 32px;
     border-radius: 16px;

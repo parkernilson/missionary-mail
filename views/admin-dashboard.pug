@@ -12,29 +12,30 @@ block content
     form.email-form(
         method='POST',
         action='/admin',
-        enctype='application/x-www-form-urlencoded'
+        enctype='application/x-www-form-urlencoded',
+        id='admin-form'
     )
-        input(
+        input.admin-form-input(
             type="text",
             name="password",
             placeholder="password",
             onfocus="this.placeholder=''"
             onblur="this.placeholder='password'"
         )
-        input(
-            type='textarea',
+        textarea.admin-form-input(
             name='emails',
+            form='admin-form',
             autocomplete='off',
             placeholder="Emails to add/remove",
             onfocus='this.placeholder=""',
             onblur='this.placeholder="Emails to add/remove"'
         )
-        button.email-form-submit(
+        button.email-form-submit.admin-form-submit(
             type='submit', 
             name='action',
             value='add-emails'
         ) Add Emails
-        button.email-form-submit(
+        button.email-form-submit.admin-form-submit(
             type='submit',
             name='action',
             value='remove-emails'

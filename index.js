@@ -23,6 +23,7 @@ const {
 } = require('./src/email-list')
 const { getEmailFromConfirmationCode, generateConfirmationCode } = require('./src/confirmation-code')
 const { sendEmail } = require('./src/send-email')
+const { verify } = require('crypto')
 
 app.use(cookieParser('fab29sjkdafb2%%'));
 app.use(session({
@@ -79,60 +80,90 @@ function validateEmail(email) {
 }
 
 app.post('/admin', async (req, res) => {
-    const emails = getEmailArrayFromListOfEmails(req.body.emails)
+    const payloadEmails = getEmailArrayFromListOfEmails(req.body.emails)
     const action = req.body.action
     const password = req.body.password
 
     if (password !== "ImASnake8421") {
         req.flash("error", "That password was incorrect.")
-        res.redirect('/admin')
+        console.error("User tried to access an admin command with improper credentials.")
+        return res.redirect('/admin')
+    }
+
+    let curEmailsInDB;
+    try {
+        curEmailsInDB = await getEmailList()
+    } catch (error) {
+        console.error(error)
+        req.flash("error", "An unexpected error occurred while trying to retrieve the emails from the mailing list.")
+        return res.redirect('/admin')
     }
 
     try {
-        if (emails.length > 0) {
-            for (let email of emails) {
+        if (payloadEmails.length > 0) {
+            for (let email of payloadEmails) {
                 if (action === "add-emails") {
-                    const commandResult = await addEmailToList(email)
-                    const result = commandResult.result
+                    if (curEmailsInDB.includes(email)) {
+                        if (!email.verified) {
+                            const verifyResult = (await attemptVerifyEmail(email)).result
+                            if (!verifyResult.ok) throw new Error(`Result was not ok after trying to verify email ${email}.`)
+                        }
 
-                    if (!result.ok) {
+                        // if the email is already present and verified, continue the loop
+                        continue;
+                    }
+
+                    const addEmailResult = (await addEmailToList(email, true)).result
+                    if (!addEmailResult.ok) {
                         throw new Error(`An unexpected error occurred while trying to add the email ${email} to the list.`)
                     }
                 } else if (action === "remove-emails") {
-                    const commandResult = await removeEmailFromList(email)
-                    const result = commandResult.result
+                    if (!curEmailsInDB.includes(email)) {
+                        // if the email to remove is not in the database, then skip this email in the loop
+                        continue;
+                    }
+                    const removeEmailResult = (await removeEmailFromList(email)).result
 
-                    if (!result.ok) {
+                    if (!removeEmailResult.ok) {
                         throw new Error(`An unexpected error occurred while trying to remove the email ${email} from the list.`)
                     }
                 }
             }
         }
     } catch (error) {
-        req.flash("Error", error)
+        console.error(error)
+        req.flash("error", error)
         return res.redirect('/admin')
     }
 
     // if we reach this point, the operation was successful
     // send an email to inform me of the new mailing list
     try {
-        const emails = await getEmailList({ verified: true })
-        const newSendingList = getSendingListFromEmailArray(emails)
-        await sendEmail({
-            to: "parker.nilson@misisonary.org",
-            subject: "The mailing list has been updated by admin dashboard",
-            text: newSendingList !== "" ? 
-                `The new mailing list: ${newSendingList}`
-                : 'The mailing list is now empty.'
-        })
+        const verifiedEmails = await getEmailList({ verified: true })
+        const newSendingList = getSendingListFromEmailArray(verifiedEmails)
+        if (process.env.ENV === "production") {
+            await sendEmail({
+                to: "parker.nilson@misisonary.org",
+                subject: "The mailing list has been updated by admin dashboard",
+                text: newSendingList !== "" ? 
+                    `The new mailing list: ${newSendingList}`
+                    : 'The mailing list is now empty.'
+            })
+        }
+
+        console.log(`Admin command successful. New sending list ${newSendingList}`)
     } catch (error) {
+        console.error(error)
         req.flash("error", error)
         return res.redirect('/admin')
     }
-})
 
-app.get('/admin', (req, res) => {
-    return res.render('admin-dashboard')
+    if (action === "add-emails") {
+        if (payloadEmails.length === 0) return res.sendStatus(200)
+        return res.sendStatus(201)
+    } else {
+        return res.sendStatus(200)
+    }
 })
 
 app.post('/mailing-list/sign-up', async (req, res) => {
@@ -292,6 +323,10 @@ app.get('/mailing-list/verify-email/:confirmationCode', async (req, res) => {
     console.log(`New sending list: ${newSendingList}`)
 
     return res.render('email-confirmed')
+})
+
+app.get('/admin', (req, res) => {
+    res.render('admin-dashboard', { messages: req.flash('error') })
 })
 
 app.get('/unsubscribe', (req, res) => {
