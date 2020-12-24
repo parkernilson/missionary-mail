@@ -15,7 +15,7 @@ const transport = nodemailer.createTransport({
 
 function sendEmail({ to, subject, text, html }) {
     return transport.sendMail({
-        from: "Missionary Mail Bot <parker.nilson@missionary.org>",
+        from: "Missionary Mail Bot <mailbot@parkernilson.com>",
         to,
         subject,
         text,
