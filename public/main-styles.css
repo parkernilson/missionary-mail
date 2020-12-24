@@ -49,6 +49,10 @@ a:hover {
     margin-bottom: 64px;
 }
 
+.bottom-blurb {
+    margin-top: 64px;
+}
+
 .title-header {
     margin-bottom: 72px;
     text-align: center;
