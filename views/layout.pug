@@ -13,9 +13,7 @@ html(lang="en")
     body
         div.background
             div.center-column
-                h1.title-header 
-                    block title-header
-                        span Welcome to Parker's Mailing Server
+                block title-header
                 if messages && messages.length > 0
                     div.messages
                         h4.messages-header

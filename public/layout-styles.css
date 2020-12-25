@@ -16,6 +16,12 @@ body {
     padding-top: 100px;
 }
 
+@media only screen and (max-width: 600px) {
+    .center-column {
+        padding-top: 32px;
+    }
+}
+
 .messages {
     padding: 16px;
     border-radius: 8px;

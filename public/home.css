@@ -1,0 +1,23 @@
+.banner-image {
+    width: 100%;
+}
+
+.banner-image-content {
+    width: 100%;
+}
+
+.banner-image-still {
+
+}
+
+.banner-image-animated {
+    display: none;
+}
+
+.banner-image:hover .banner-image-still {
+    display: none;
+}
+
+.banner-image:hover .banner-image-animated {
+    display: inline;
+}
