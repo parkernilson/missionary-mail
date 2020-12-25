@@ -1,6 +1,7 @@
 const fs = require('fs')
 
 const express = require('express')
+const basicAuth = require('express-basic-auth')
 const AES = require('crypto-js/aes')
 const rateLimit = require('express-rate-limit')
 const basicAuth = require('express-basic-auth')
@@ -76,6 +77,37 @@ app.post('/incoming-mail', basicAuth({
 }), (req, res) => {
 
     // TODO: handle email commands here
+
+})
+
+app.get('/manual-action', basicAuth({
+    users: { 'parkernilson': 'ImASnake8421' }
+}), (req, res) => {
+    // TODO: finish this
+
+    if (req.params.action === "add") {
+        let addEmailResult
+        try {
+            const commandResult = await addEmailToList(req.params.email)
+            addEmailToList = commandResult.result
+        } catch (error) {
+            console.error(error)
+            return res.sendStatus(500)
+        }
+
+        return res.sendStatus(201)
+    } else if (req.params.action === "remove") {
+        let removeEmailResult
+        try {
+            const commandResult = await removeEmailFromList(req.params.email)
+            removeEmailResult = commandResult.result
+        } catch (error) {
+            console.error(error)
+            return res.sendStatus(500)
+        }
+
+        return res.sendStatus(200)
+    }
 
 })
 
