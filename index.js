@@ -153,10 +153,9 @@ app.post('/admin', async (req, res) => {
     }
 
     if (action === "add-emails") {
-        if (payloadEmails.length === 0) return res.sendStatus(200)
-        return res.sendStatus(201)
+        return res.redirect('/admin')
     } else {
-        return res.sendStatus(200)
+        return res.redirect('/admin')
     }
 })
 
@@ -315,18 +314,23 @@ app.get('/mailing-list/verify-email/:confirmationCode', async (req, res) => {
 })
 
 app.get('/admin', async (req, res) => {
-    let emailList
+    let recipients
     try {
-        emailList = await getEmailList()
+        const db = await getDB()
+        const cursor = await db.collection('recipients').find()
+        recipients = await cursor.toArray()
     } catch (error) {
         console.error(error)
         req.flash("error", error)
     }
 
+    const verifiedEmailList = recipients && recipients.length > 0 ? recipients.filter(r => r.verified).map(r => r.email) : undefined
+    const unverifiedEmailList = recipients && recipients.length > 0 ? recipients.filter(r => !r.verified).map(r => r.email) : undefined
+
     res.render('admin-dashboard', { 
         messages: req.flash('error'),
-        verifiedEmailList: emailList ? getSendingListFromEmailArray(emailList.filter(e => e.verified)) : undefined,
-        unverifiedEmailList: emailList ? getSendingListFromEmailArray(emailList.filter(e => !e.verified)) : undefined
+        verifiedEmailList: getSendingListFromEmailArray(verifiedEmailList),
+        unverifiedEmailList: getSendingListFromEmailArray(unverifiedEmailList)
     })
 })
 
