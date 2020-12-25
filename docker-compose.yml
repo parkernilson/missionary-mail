@@ -6,6 +6,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 27hdKslik
+    volumes:
+      - ./data/db:/data/db
     ports:
       - 27017:27017
     command: mongod --logpath=/dev/null --quiet
@@ -14,8 +16,6 @@ services:
     environment:
       ENV: production
     restart: unless-stopped
-    volumes:
-      - ./data/db:/data/db
     ports: 
       - 5000:8080
     depends_on:
