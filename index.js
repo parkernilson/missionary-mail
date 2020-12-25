@@ -273,6 +273,21 @@ app.get('/mailing-list/verify-email/:confirmationCode', async (req, res) => {
     const confirmationCode = decodeURIComponent(req.params.confirmationCode)
     const emailToVerify = getEmailFromConfirmationCode(confirmationCode)
 
+    let currentEmails
+    try {
+        currentEmails = await getEmailList()
+    } catch (error) {
+        console.error(error)
+        req.flash('error', 'An unexpected error occurred while trying to get the current email list. Please try again later.')
+        return res.redirect('/')
+    }
+
+    if (!currentEmails.includes(emailToVerify)) {
+        console.error(`Error: Attempted to verify email ${emailToVerify}, but it did not exist in the database.`)
+        req.flash('error', `The email for that confirmation code did not exist in the database. Please try to submit your email again.`)
+        return res.redirect('/')
+    }
+
     let verificationResult
     try {
         commandResult = await attemptVerifyEmail(emailToVerify)
