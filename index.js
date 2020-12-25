@@ -165,7 +165,7 @@ app.post('/mailing-list/remove-email', async (req, res) => {
         return res.redirect('/unsubscribe')
     }
 
-    const newEmailList = emails.filter(e => e !== email)
+    const newEmailList = emails.filter(e => e.verified && e !== email)
     
     const newSendingList = getSendingListFromEmailArray(newEmailList)
 
