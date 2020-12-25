@@ -11,17 +11,10 @@ block append styles
 block content
     form.email-form(
         method='POST',
-        action='/admin',
+        action=`/admin?password=${password}`,
         enctype='application/x-www-form-urlencoded',
         id='admin-form'
     )
-        input.admin-form-input(
-            type="text",
-            name="password",
-            placeholder="password",
-            onfocus="this.placeholder=''"
-            onblur="this.placeholder='password'"
-        )
         textarea.admin-form-input(
             name='emails',
             form='admin-form',

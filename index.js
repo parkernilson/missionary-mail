@@ -38,6 +38,7 @@ app.use(flash());
 app.set('view engine', 'pug')
 app.set('views')
 
+const ADMIN_PASSWORD = "ImASnake8421"
 
 // Set up middleware
 const staticOptions = {
@@ -76,11 +77,11 @@ function validateEmail(email) {
 app.post('/admin', async (req, res) => {
     const payloadEmails = getEmailArrayFromListOfEmails(req.body.emails.toLowerCase())
     const action = req.body.action
-    const password = req.body.password
+    const password = req.query.password
 
-    if (password !== "ImASnake8421") {
+    if (password !== ADMIN_PASSWORD) {
         req.flash("error", "That password was incorrect.")
-        console.error("User tried to access an admin command with improper credentials.")
+        console.error("Warning: User tried to access an admin command with improper credentials.")
         return res.redirect('/admin')
     }
 
@@ -90,7 +91,7 @@ app.post('/admin', async (req, res) => {
     } catch (error) {
         console.error(error)
         req.flash("error", "An unexpected error occurred while trying to retrieve the emails from the mailing list.")
-        return res.redirect('/admin')
+        return res.redirect(`/admin?password=${password}`)
     }
 
     try {
@@ -127,7 +128,7 @@ app.post('/admin', async (req, res) => {
     } catch (error) {
         console.error(error)
         req.flash("error", error)
-        return res.redirect('/admin')
+        return res.redirect(`/admin?password=${password}`)
     }
 
     // if we reach this point, the operation was successful
@@ -149,14 +150,10 @@ app.post('/admin', async (req, res) => {
     } catch (error) {
         console.error(error)
         req.flash("error", error)
-        return res.redirect('/admin')
+        return res.redirect(`/admin?password=${password}`)
     }
 
-    if (action === "add-emails") {
-        return res.redirect('/admin')
-    } else {
-        return res.redirect('/admin')
-    }
+    return res.redirect(`/admin?password=${password}`)
 })
 
 app.post('/mailing-list/sign-up', async (req, res) => {
@@ -329,6 +326,11 @@ app.get('/mailing-list/verify-email/:confirmationCode', async (req, res) => {
 })
 
 app.get('/admin', async (req, res) => {
+    const attemptedPassword = req.query.password
+    if (attemptedPassword !== ADMIN_PASSWORD) {
+        return res.sendStatus(401)
+    }
+
     let recipients
     try {
         const db = await getDB()
@@ -345,7 +347,8 @@ app.get('/admin', async (req, res) => {
     res.render('admin-dashboard', { 
         messages: req.flash('error'),
         verifiedEmailList: getSendingListFromEmailArray(verifiedEmailList),
-        unverifiedEmailList: getSendingListFromEmailArray(unverifiedEmailList)
+        unverifiedEmailList: getSendingListFromEmailArray(unverifiedEmailList),
+        password: attemptedPassword
     })
 })
 
