@@ -78,11 +78,15 @@ function validateEmail(email) {
     return re.test(String(email).toLowerCase())
 }
 
-app.post('/admin', basicAuth({
-    users: { 'parkernilson': 'ImASnake8421' }
-}), async (req, res) => {
+app.post('/admin', async (req, res) => {
     const emails = getEmailArrayFromListOfEmails(req.body.emails)
     const action = req.body.action
+    const password = req.body.password
+
+    if (password !== "ImASnake8421") {
+        req.flash("error", "That password was incorrect.")
+        res.redirect('/admin')
+    }
 
     try {
         if (emails.length > 0) {
@@ -127,9 +131,7 @@ app.post('/admin', basicAuth({
     }
 })
 
-app.get('/admin', basicAuth({
-    users: { 'parkernilson': 'ImASnake8421' }
-}), (req, res) => {
+app.get('/admin', (req, res) => {
     return res.render('admin-dashboard')
 })
 

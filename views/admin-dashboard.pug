@@ -15,6 +15,13 @@ block content
         enctype='application/x-www-form-urlencoded'
     )
         input(
+            type="text",
+            name="password",
+            placeholder="password",
+            onfocus="this.placeholder=''"
+            onblur="this.placeholder='password'"
+        )
+        input(
             type='textarea',
             name='emails',
             autocomplete='off',
