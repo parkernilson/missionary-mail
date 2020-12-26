@@ -18,7 +18,8 @@ const {
     getEmailList, 
     getSendingListFromEmailArray, 
     sendConfirmationEmail,
-    attemptVerifyEmail
+    attemptVerifyEmail,
+    getEmailArrayFromListOfEmails
 } = require('./src/email-list')
 const { getEmailFromConfirmationCode, generateConfirmationCode } = require('./src/confirmation-code')
 const { sendEmail } = require('./src/send-email')
