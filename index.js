@@ -73,7 +73,7 @@ function validateEmail(email) {
 }
 
 app.post('/admin', async (req, res) => {
-    const payloadEmails = getEmailArrayFromListOfEmails(req.body.emails)
+    const payloadEmails = getEmailArrayFromListOfEmails(req.body.emails.toLowerCase())
     const action = req.body.action
     const password = req.body.password
 
@@ -136,12 +136,12 @@ app.post('/admin', async (req, res) => {
         const newSendingList = getSendingListFromEmailArray(verifiedEmails)
         if (process.env.ENV === "production") {
             await sendEmail({
-                to: "parker.nilson@misisonary.org",
+                to: "parker.nilson@missionary.org",
                 subject: "The mailing list has been updated by admin dashboard",
                 text: newSendingList !== "" ? 
                     `The new mailing list: ${newSendingList}`
                     : 'The mailing list is now empty.'
-            })
+            }).catch(error => console.error(error))
         }
 
         console.log(`Admin command successful. New sending list ${newSendingList}`)
@@ -285,11 +285,6 @@ app.get('/mailing-list/verify-email/:confirmationCode', async (req, res) => {
 
     if (!verificationResult.ok) {
         req.flash('error', 'An unexpected error occurred while trying to verify your email. Please try again later.')
-        return res.redirect('/')
-    }
-
-    if (verificationResult.nModified < 1) {
-        req.flash('error', 'That verification code is invalid.')
         return res.redirect('/')
     }
 
