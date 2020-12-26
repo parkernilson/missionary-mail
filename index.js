@@ -1,7 +1,6 @@
 const fs = require('fs')
 
 const express = require('express')
-const basicAuth = require('express-basic-auth')
 const AES = require('crypto-js/aes')
 const rateLimit = require('express-rate-limit')
 const basicAuth = require('express-basic-auth')
