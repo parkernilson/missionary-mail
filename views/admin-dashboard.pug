@@ -40,4 +40,11 @@ block content
             name='action',
             value='remove-emails'
         ) Remove Emails
-
+    if verifiedEmailList
+        p.display-email-list Verified email list: #{verifiedEmailList}
+    else
+        p.display-email-list The verified email list was either empty or it could not be retrieved.
+    if unverifiedEmailList
+        p.display-email-list Unverified email list: #{unverifiedEmailList}
+    else
+        p.display-email-list The unverified email list was either empty or it could not be retrieved.

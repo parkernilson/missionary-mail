@@ -24,6 +24,7 @@ const {
 const { getEmailFromConfirmationCode, generateConfirmationCode } = require('./src/confirmation-code')
 const { sendEmail } = require('./src/send-email')
 const { verify } = require('crypto')
+const { getDB } = require('./src/db')
 
 app.use(cookieParser('fab29sjkdafb2%%'));
 app.use(session({
@@ -313,8 +314,20 @@ app.get('/mailing-list/verify-email/:confirmationCode', async (req, res) => {
     return res.render('email-confirmed')
 })
 
-app.get('/admin', (req, res) => {
-    res.render('admin-dashboard', { messages: req.flash('error') })
+app.get('/admin', async (req, res) => {
+    let emailList
+    try {
+        emailList = await getEmailList()
+    } catch (error) {
+        console.error(error)
+        req.flash("error", error)
+    }
+
+    res.render('admin-dashboard', { 
+        messages: req.flash('error'),
+        verifiedEmailList: emailList ? getSendingListFromEmailArray(emailList.filter(e => e.verified)) : undefined,
+        unverifiedEmailList: emailList ? getSendingListFromEmailArray(emailList.filter(e => !e.verified)) : undefined
+    })
 })
 
 app.get('/unsubscribe', (req, res) => {
