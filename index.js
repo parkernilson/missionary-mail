@@ -60,6 +60,12 @@ const mailingListLimiter = rateLimit({
 });
 app.use('/mailing-list/', mailingListLimiter)
 
+const adminDashboardLimiter = rateLimit({
+    windowMs: 30 * 60 * 1000,
+    max: 30
+})
+app.use('/admin/', adminDashboardLimiter)
+
 
 // TODO: bug test case sensitivity
 // TODO: bug test data persistence between boots
@@ -72,43 +78,59 @@ function validateEmail(email) {
     return re.test(String(email).toLowerCase())
 }
 
-app.post('/incoming-mail', basicAuth({
-    users: { 'eldernilson': 'GBHinckley!!8181' }
-}), (req, res) => {
-
-    // TODO: handle email commands here
-
-})
-
-app.get('/manual-action', basicAuth({
+app.post('/admin', basicAuth({
     users: { 'parkernilson': 'ImASnake8421' }
-}), (req, res) => {
-    // TODO: finish this
+}), async (req, res) => {
+    const emails = getEmailArrayFromListOfEmails(req.body.emails)
+    const action = req.body.action
 
-    if (req.params.action === "add") {
-        let addEmailResult
-        try {
-            const commandResult = await addEmailToList(req.params.email)
-            addEmailToList = commandResult.result
-        } catch (error) {
-            console.error(error)
-            return res.sendStatus(500)
+    try {
+        if (emails.length > 0) {
+            for (let email of emails) {
+                if (action === "add-emails") {
+                    const commandResult = await addEmailToList(email)
+                    const result = commandResult.result
+
+                    if (!result.ok) {
+                        throw new Error(`An unexpected error occurred while trying to add the email ${email} to the list.`)
+                    }
+                } else if (action === "remove-emails") {
+                    const commandResult = await removeEmailFromList(email)
+                    const result = commandResult.result
+
+                    if (!result.ok) {
+                        throw new Error(`An unexpected error occurred while trying to remove the email ${email} from the list.`)
+                    }
+                }
+            }
         }
-
-        return res.sendStatus(201)
-    } else if (req.params.action === "remove") {
-        let removeEmailResult
-        try {
-            const commandResult = await removeEmailFromList(req.params.email)
-            removeEmailResult = commandResult.result
-        } catch (error) {
-            console.error(error)
-            return res.sendStatus(500)
-        }
-
-        return res.sendStatus(200)
+    } catch (error) {
+        req.flash("Error", error)
+        return res.redirect('/admin')
     }
 
+    // if we reach this point, the operation was successful
+    // send an email to inform me of the new mailing list
+    try {
+        const emails = await getEmailList({ verified: true })
+        const newSendingList = getSendingListFromEmailArray(emails)
+        await sendEmail({
+            to: "parker.nilson@misisonary.org",
+            subject: "The mailing list has been updated by admin dashboard",
+            text: newSendingList !== "" ? 
+                `The new mailing list: ${newSendingList}`
+                : 'The mailing list is now empty.'
+        })
+    } catch (error) {
+        req.flash("error", error)
+        return res.redirect('/admin')
+    }
+})
+
+app.get('/admin', basicAuth({
+    users: { 'parkernilson': 'ImASnake8421' }
+}), (req, res) => {
+    return res.render('admin-dashboard')
 })
 
 app.post('/mailing-list/sign-up', async (req, res) => {

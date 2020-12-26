@@ -1,0 +1,35 @@
+extends layout.pug
+block title
+    title Admin
+
+block title-header
+    span Admin Dashboard
+
+block append styles
+    link(rel="stylesheet", href="/admin-dashboard.css")
+
+block content
+    form.email-form(
+        method='POST',
+        action='/admin',
+        enctype='application/x-www-form-urlencoded'
+    )
+        input(
+            type='textarea',
+            name='emails',
+            autocomplete='off',
+            placeholder="Emails to add/remove",
+            onfocus='this.placeholder=""',
+            onblur='this.placeholder="Emails to add/remove"'
+        )
+        button.email-form-submit(
+            type='submit', 
+            name='action',
+            value='add-emails'
+        ) Add Emails
+        input.email-form-submit(
+            type='submit',
+            name='action',
+            name='remove-emails'
+        ) Remove Emails
+

@@ -8,6 +8,18 @@ const { sendEmail } = require('./send-email')
 const { generateConfirmationCode } = require('./confirmation-code')
 
 /**
+ * Given a string list of emails e.g. "parker@gmail.com, steve@mail.net, gary@gmail.com"
+ * get an array of the emails it lists
+ */
+function getEmailArrayFromListOfEmails(listOfEmails) {
+    if (listOfEmails.length === 0) {
+        return []
+    } else {
+        return listOfEmails.split(", ")
+    }
+}
+
+/**
  * Get a comma separated list of items from an array
  * e.g. 'a, b, c'
  */
@@ -109,5 +121,6 @@ module.exports = {
     removeEmailFromList,
     getSendingListFromEmailArray,
     sendConfirmationEmail,
-    attemptVerifyEmail
+    attemptVerifyEmail,
+    getEmailArrayFromListOfEmails
 }
