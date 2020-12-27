@@ -71,7 +71,7 @@ app.use('/admin/', adminDashboardLimiter)
 
 function validateEmail(email) {
     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    return re.test(String(email).toLowerCase())
+    return re.test(String(email).trim().toLowerCase())
 }
 
 app.post('/admin', async (req, res) => {
@@ -157,7 +157,7 @@ app.post('/admin', async (req, res) => {
 })
 
 app.post('/mailing-list/sign-up', async (req, res) => {
-    const email = req.body.email.toLowerCase()
+    const email = req.body.email.trim().toLowerCase()
 
     if (!email) {
 	req.flash('error', 'You did not enter an email. Please enter an email address and try again.')
