@@ -160,7 +160,8 @@ app.post('/mailing-list/sign-up', async (req, res) => {
     const email = req.body.email.toLowerCase()
 
     if (!email || !validateEmail(email)) {
-        req.flash('error', 'You did not enter a valid email address.')
+	console.error(`Error: User tried to input an invalid email ${email}`)
+        req.flash('error', `The email ${email} is not a valid email address. Please try again with a different address`)
         return res.redirect('/')
     }
 
