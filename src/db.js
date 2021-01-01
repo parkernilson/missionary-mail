@@ -21,6 +21,16 @@ function getDB() {
     return db ? Promise.resolve(db) : loadDB()
 }
 
+/**
+ * Get the recipients collection from the database
+ */
+function getRecipientsCollection() {
+    return getDB().then(db => {
+        return db.collection('recipients')
+    })
+}
+
 module.exports = {
-    getDB
+    getDB,
+    getRecipientsCollection
 }

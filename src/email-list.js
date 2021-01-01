@@ -3,7 +3,7 @@ const path = require('path')
 
 const AES = require('crypto-js/aes')
 
-const { getDB } = require('./db')
+const { getDB, getRecipientsCollection } = require('./db')
 const { sendEmail } = require('./send-email')
 const { generateConfirmationCode } = require('./confirmation-code')
 
@@ -38,74 +38,72 @@ function getSendingListFromEmailArray(emailArray) {
 }
 
 /**
- * Add an email to the mailing list
+ * Get the list of recipients from the database
  */
-function addEmailToList(email, verified) {
-    return getDB()
-        .then(db => {
-            const recipients = db.collection('recipients')
-            const newRecipient = {
-                email: email.toLowerCase(),
-                verified: verified ? true : false
-            }
-            return recipients.insertOne(newRecipient)
-        })
-}
-
-/**
- * Remove an email from the mailing list
- */
-function removeEmailFromList(email) {
-    return getDB()
-        .then(db => {
-            const recipients = db.collection('recipients')
-            return recipients.deleteMany({
-                email: {
-                    $eq: email.toLowerCase()
-                }
-            })
-        })
-}
-
-/**
- * Get an array of emails to send the missionary mail to
- */
-function getEmailList(filter) {
-    return getDB()
-        // get all of the recipient documents on the email list
-        .then(db => {
-            const recipientsCollection = db.collection('recipients')
+function getRecipientList(filter) {
+    return getRecipientsCollection()
+        .then(recipientsCollection => {
             return recipientsCollection.find(filter)
         })
-        .then(cursor => {
-            return cursor.toArray()
-        })
-        // map to the email field of each document
-        .then(documents => {
-            return documents.map(doc => doc.email)
+        .then(cursor => cursor.toArray())
+}
+
+/**
+ * Add a new email to the mailing list
+ */
+async function addEmailToList(email, verified) {
+    const formattedEmail = email.trim().toLowerCase()
+    return Promise.all([
+        getRecipientList(),
+        getRecipientsCollection()
+    ]).then(([allRecipients, recipientsCollection]) => {
+        if (!allRecipients.find(r => r.email === formattedEmail)) {
+            return recipientsCollection.insertOne({
+                email: formattedEmail,
+                verified: verified || false
+            })
+        } else {
+            throw new Error(`Email ${formattedEmail} already exists in the database.`)
+        }
+    })
+}
+
+/**
+ * Remove the recipient with the given email address from the database
+ */
+function removeEmailFromList(email) {
+    const formattedEmail = email.trim().toLowerCase()
+    return getRecipientsCollection()
+        .then(recipientsCollection => {
+            return recipientsCollection.deleteOne({ email })
         })
 }
 
-
+/**
+ * Send a verification email to the given email address
+ */
 function sendConfirmationEmail(email) {
+    const formattedEmail = email.trim().toLowerCase()
     return sendEmail({
-        to: email,
+        to: formattedEmail,
         subject: "Please Confirm Email for Elder Nilson's Mailing List.",
         text: `You have requested to be added to Elder Nilson's Mailing List!
 Before I can send you any emails, you will need to click the following link to confirm your email:
 
-https://mail.parkernilson.com/mailing-list/verify-email/${encodeURIComponent(generateConfirmationCode(email))}`
+https://mail.parkernilson.com/mailing-list/verify-email/${encodeURIComponent(generateConfirmationCode(formattedEmail))}`
     })
 }
 
+/**
+ * Attempt to verify the recipient with the given email address
+ */
 function attemptVerifyEmail(email) {
-    return getDB()
-        .then(db => {
-            const recipients = db.collection('recipients')
-
-            return recipients.updateOne({
+    const formattedEmail = email.trim().toLowerCase()
+    return getRecipientsCollection()
+        .then(recipientsCollection => {
+            return recipientsCollection.updateOne({
                 email: {
-                    $eq: email.toLowerCase()
+                    $eq: formattedEmail
                 }
             }, {
                 $set: {
@@ -116,7 +114,7 @@ function attemptVerifyEmail(email) {
 }
 
 module.exports = {
-    getEmailList,
+    getRecipientList,
     addEmailToList,
     removeEmailFromList,
     getSendingListFromEmailArray,
