@@ -1,5 +1,7 @@
 const nodemailer = require('nodemailer')
 
+const { SMTP_USER, SMTP_PASS } = process.env
+
 // set up mail transport
 const transport = nodemailer.createTransport({
     host: 'smtp.cloudmta.net',
@@ -7,8 +9,8 @@ const transport = nodemailer.createTransport({
     secure: false,
     requireTLS: true,
     auth: {
-        user: "7ca731b2f948c506",
-        pass: "KrymdLx4Vpr1A77iC3tQVgLa"
+        user: SMTP_USER,
+        pass: SMTP_PASS
     },
     logger: true
 });
